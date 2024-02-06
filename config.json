@@ -1,0 +1,12 @@
+{
+  "main": {
+    "problems_dir": "problems",
+    "open_saved_problems": false
+  },
+  "providers": {
+    "leetcode": {
+      "cookies_path": "leetcode_cookies.txt",
+      "code_prefix": null
+    }
+  }
+}
