@@ -1,7 +1,7 @@
 import os
 import re
 from time import sleep
-from typing import Optional
+from typing import Optional, Tuple
 
 import click
 from slugify import slugify
@@ -19,6 +19,8 @@ from utils.config import Config
 @click.argument("PROBLEM")
 @click.option("--rewrite", "-r", default=False, is_flag=True,
               help="Rewrite existing problem without confirmation")
+@click.option('--open/--no-open', '-o/-no', default=None,
+              help="Open problem in default code editor")
 @pass_config
 @pass_keeper
 @pass_client
@@ -27,10 +29,12 @@ def get(
     keeper: ProblemKeeper,
     config: Config,
     problem: str,
-    rewrite: bool
+    rewrite: bool,
+    open: bool
 ):
     """Download specified problem\n
     PROBLEM: problem url or title"""
+
     problem_url_re = re.compile("leetcode\.com\/problems\/([\w-]+)")
     if (match := problem_url_re.search(problem)) is not None:
         fetched_problem = client.get_problem(match.group(1))
@@ -41,7 +45,8 @@ def get(
         click.echo(f"Problem \"{problem}\" was not found")
         return
     save_problem(fetched_problem, keeper, rewrite)
-    if config.get("main", "open_saved_problems"):
+    open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
 @click.command("random")
@@ -49,6 +54,8 @@ def get(
 @click.option("--solved", "-s", help="Include solved problems", default=False, is_flag=True)
 @click.option("--rewrite", "-r", default=False, is_flag=True,
               help="Rewrite existing problem without confirmation")
+@click.option('--open/--no-open', '-o/-no', default=None,
+              help="Open problem in default code editor")
 @pass_config
 @pass_keeper
 @pass_client
@@ -74,12 +81,15 @@ def random(
         except PremiumRequired:
             sleep(1)
     save_problem(fetched_problem, keeper, rewrite)
-    if config.get("main", "open_saved_problems"):
+    open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
 @click.command("today")
 @click.option("--rewrite", "-r", default=False, is_flag=True,
               help="Rewrite existing problem without confirmation")
+@click.option('--open/--no-open', '-o/-no', default=None,
+              help="Open problem in default code editor")
 @pass_config
 @pass_keeper
 @pass_client
@@ -92,13 +102,16 @@ def today(
     """Download problem of today"""
     fetched_problem = client.get_problem_of_today()
     save_problem(fetched_problem, keeper, rewrite)
-    if config.get("main", "open_saved_problems"):
+    open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
 @click.command("plan_next")
 @click.argument("PLAN")
 @click.option("--rewrite", "-r", default=False, is_flag=True,
               help="Rewrite existing problem without confirmation")
+@click.option('--open/--no-open', '-o/-no', default=None,
+              help="Open problem in default code editor")
 @pass_config
 @pass_keeper
 @pass_client
@@ -127,7 +140,8 @@ def plan_next(
         return
 
     save_problem(fetched_problem, keeper, rewrite)
-    if config.get("main", "open_saved_problems"):
+    open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
 @click.command("test")
@@ -139,7 +153,7 @@ def test(
     client: LeetCodeClient,
     keeper: ProblemKeeper,
     problem: str,
-    test_input: Optional[str]
+    test_input: Tuple[str]
 ):
     """Test saved solution for specified problem\n
     PROBLEM: problem title or slug\n
