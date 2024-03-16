@@ -51,7 +51,8 @@ class LeetCodeClient:
 
         return self.converter.json_to_problem(resp.json().get("data").get("question"))
     
-    def test_solution(self, problem: classes.LeetCodeProblem) -> CommitResult:
+    def test_solution(self, problem: classes.LeetCodeProblem, test_input: Optional[str]) -> CommitResult:
+        test_input = test_input or problem.test_input
         resp = self._make_request(
             f"problems/{problem.title_slug}/interpret_solution/",
             "POST",
@@ -60,7 +61,7 @@ class LeetCodeClient:
             },
             json={
                 "question_id": problem.problem_id,
-                "data_input": problem.test_input,
+                "data_input": test_input,
                 "lang": "python3",
                 "typed_code": problem.solution_code,
                 "judge_type": problem.judge_type
@@ -68,7 +69,7 @@ class LeetCodeClient:
         )
 
         run_id = resp.json().get("interpret_id")
-        result = self._await_running_submission(problem, run_id, problem.test_input)
+        result = self._await_running_submission(problem, run_id, test_input)
         return result
     
     def submit_solution(self, problem: classes.LeetCodeProblem) -> CommitResult:

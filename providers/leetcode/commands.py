@@ -132,11 +132,18 @@ def plan_next(
 
 @click.command("test")
 @click.argument("PROBLEM")
+@click.argument("TEST_INPUT", nargs=-1)
 @pass_keeper
 @pass_client
-def test(client: LeetCodeClient, keeper: ProblemKeeper, problem: str):
+def test(
+    client: LeetCodeClient,
+    keeper: ProblemKeeper,
+    problem: str,
+    test_input: Optional[str]
+):
     """Test saved solution for specified problem\n
-    PROBLEM: problem title or slug"""
+    PROBLEM: problem title or slug\n
+    TEST_INPUT: testcase arguments separated by space"""
     problem_slug = slugify(problem)
     problem_path = keeper.get_problem_path(problem_slug)
     try:
@@ -144,7 +151,8 @@ def test(client: LeetCodeClient, keeper: ProblemKeeper, problem: str):
     except FileNotFoundError:
         click.echo(f"Problem \"{problem}\" was not found at {problem_path}")
         return
-    result = client.test_solution(loaded_problem)
+    test_input = '\n'.join(test_input) if len(test_input) > 0 else None
+    result = client.test_solution(loaded_problem, test_input)
     click.echo(result)
 
 @click.command("submit")
