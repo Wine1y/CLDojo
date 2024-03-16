@@ -2,10 +2,12 @@ from typing import Dict, Any, Optional
 from time import sleep
 from pathlib import Path
 from http.cookiejar import MozillaCookieJar
+from contextlib import suppress
 
 import requests
 
 import providers.leetcode.classes as classes
+import providers.leetcode.exceptions as exceptions
 from classes.result import CommitResult
 from .converter import LeetCodeConverter
 
@@ -222,7 +224,12 @@ class LeetCodeClient:
             json=json,
             cookies=self.session.cookies.get_dict()
         )
-
+        if response.status_code == 403:
+            error = None
+            with suppress(Exception):
+                error = response.json().get("error")
+            if error is not None and error == "User is not authenticated":
+                raise exceptions.AuthenticationFailed("Authentication failed, check LEETCODE_SESSION cookie.")
         if response.status_code != 200:
             raise RuntimeError(f"Leetcode returned {response.status_code}" )
         return response

@@ -50,7 +50,7 @@ class LeetCodeConverter():
     def json_to_current_username(self, json: Dict[str, Any]) -> str:
         user_status = json.get("userStatus")
         if user_status is None or not user_status.get("isSignedIn"):
-            raise exceptions.AuthenticationFailed("Can't get current user data, check LeetCode cookies.")
+            raise exceptions.AuthenticationFailed("Can't get current user data, check LEETCODE_SESSION cookie.")
         return user_status.get("username")
     
     def json_to_user_stats(
