@@ -107,10 +107,13 @@ class LeetCodeConverter():
         json: Dict[str, Any],
         input_data: Optional[str]=None
         ) -> CommitResult:
+        is_error = json.get("runtime_error") is not None
+        is_time_limit_exceeded = json.get("status_msg") == "Time Limit Exceeded"
+
         match json.get("state"):
             case "SUCCESS" if (correct := json.get("correct_answer")) is not None and correct:
                 state = ResultState.Accepted
-            case "SUCCESS" if json.get("runtime_error") is not None:
+            case "SUCCESS" if is_error or is_time_limit_exceeded:
                 state = ResultState.Error
             case "SUCCESS":
                 state = ResultState.Rejected
@@ -120,6 +123,12 @@ class LeetCodeConverter():
         answer = "\n".join(answer_list) if (answer_list := json.get("code_answer")) is not None else None
         exp_answer = "\n".join(exp_answer_list) if (exp_answer_list := json.get("expected_code_answer")) is not None else None
         output = "\n".join(out_list) if (out_list := json.get("code_output")) is not None else None
+
+        error = json.get("runtime_error")
+        if is_time_limit_exceeded:
+            error = "Time Limit Exceeded"
+            if (elapsed_time := json.get("elapsed_time")) is not None:
+                error += f" ({round(elapsed_time/1000,2 )}s)"
 
         return classes.LeetCodeCommitResult(
             problem_title=f"{problem.title}(Test)",
@@ -132,7 +141,7 @@ class LeetCodeConverter():
             expected_answer=exp_answer,
             input=input_data,
             output=output,
-            error=json.get("runtime_error")
+            error=error
         )
     
     def _json_to_submit_result(
@@ -140,15 +149,24 @@ class LeetCodeConverter():
         problem: classes.LeetCodeProblem,
         json: Dict[str, Any]
     ) -> CommitResult:
+        is_error = json.get("runtime_error") is not None
+        is_time_limit_exceeded = json.get("status_msg") == "Time Limit Exceeded"
+
         match json.get("state"):
             case "SUCCESS" if json.get("total_correct") == json.get("total_testcases"):
                 state = ResultState.Accepted
-            case "SUCCESS" if json.get("runtime_error") is not None:
+            case "SUCCESS" if is_error or is_time_limit_exceeded:
                 state = ResultState.Error
             case "SUCCESS":
                 state = ResultState.Rejected
             case _:
                 state = ResultState.Unknown
+
+        error = json.get("runtime_error")
+        if is_time_limit_exceeded:
+            error = "Time Limit Exceeded"
+            if (elapsed_time := json.get("elapsed_time")) is not None:
+                error += f" ({round(elapsed_time/1000,2 )}s)"
 
         return classes.LeetCodeCommitResult(
             problem_title=problem.title,
@@ -161,7 +179,7 @@ class LeetCodeConverter():
             expected_answer=json.get("expected_output"),
             input=json.get("last_testcase"),
             output=json.get("std_output"),
-            error=json.get("runtime_error")
+            error=error
         )
 
     def _content_to_description(self, problem_content: str) -> str:
