@@ -147,11 +147,13 @@ def plan_next(
 @click.command("test")
 @click.argument("PROBLEM")
 @click.argument("TEST_INPUT", nargs=-1)
+@pass_config
 @pass_keeper
 @pass_client
 def test(
     client: LeetCodeClient,
     keeper: ProblemKeeper,
+    config: Config,
     problem: str,
     test_input: Tuple[str]
 ):
@@ -167,13 +169,20 @@ def test(
         return
     test_input = '\n'.join(test_input) if len(test_input) > 0 else None
     result = client.test_solution(loaded_problem, test_input)
+    result.cut_lines(config.get("main", "max_result_line_length"))
     click.echo(result)
 
 @click.command("submit")
 @click.argument("PROBLEM")
+@pass_config
 @pass_keeper
 @pass_client
-def submit(client: LeetCodeClient, keeper: ProblemKeeper, problem: str):
+def submit(
+    client: LeetCodeClient,
+    keeper: ProblemKeeper,
+    config: Config,
+    problem: str
+):
     """Submit saved solution for specified problem\n
     PROBLEM: problem title or slug"""
     problem_slug = slugify(problem)
@@ -184,6 +193,7 @@ def submit(client: LeetCodeClient, keeper: ProblemKeeper, problem: str):
         click.echo(f"Problem \"{problem}\" was not found at {problem_path}")
         return
     result = client.submit_solution(loaded_problem)
+    result.cut_lines(config.get("main", "max_result_line_length"))
     click.echo(result)
 
 @click.command("stats")

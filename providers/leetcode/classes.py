@@ -54,7 +54,13 @@ class LeetCodeCommitResult(CommitResult):
         if self.error is not None and len(self.error) > 0:
             info_parts.append(f"Error:\n{self.error}")
         return info_parts
-
+    
+    def cut_lines(self, max_line_length: int) -> None:
+        for line in ["input", "answer", "expected_answer", "output", "error"]:
+            line_value = getattr(self, line)
+            if line_value is not None and len(line_value) > max_line_length:
+                setattr(self, line, f"{line_value[:max_line_length]}... ({len(line_value)-max_line_length} characters more)")
+                
 class LeetCodeProblemDifficulty(Enum):
     All = "all"
     Easy = "easy"

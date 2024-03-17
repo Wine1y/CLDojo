@@ -76,7 +76,8 @@ def get_config() -> Config:
 DEFAULT_CONFIG = {
   "main": {
     "problems_dir": "problems",
-    "open_saved_problems": False
+    "open_saved_problems": False,
+    "max_result_line_length": 256
   },
   "providers": {
     "leetcode": {

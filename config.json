@@ -1,7 +1,8 @@
 {
   "main": {
     "problems_dir": "problems",
-    "open_saved_problems": false
+    "open_saved_problems": false,
+    "max_result_line_length": 256
   },
   "providers": {
     "leetcode": {

@@ -26,6 +26,9 @@ class CommitResult():
     def footer_lines(self) -> List[str]:
         return list()
     
+    def cut_lines(self, max_line_length: int) -> None:
+        ...
+    
     def __str__(self) -> str:
         header, body, footer = self.header_lines(), self.body_lines(), self.footer_lines()
         result_str = f"{self.problem_title}: {self.state}"
