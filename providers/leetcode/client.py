@@ -75,17 +75,21 @@ class LeetCodeClient:
         return result
     
     def submit_solution(self, problem: classes.LeetCodeProblem) -> CommitResult:
+        json = {
+            "question_id": problem.problem_id,
+            "lang": "python3",
+            "typed_code": problem.solution_code,
+        }
+        
+        if problem.study_plan_slug is not None:
+            json["study_plan_slug"] = problem.study_plan_slug
         resp = self._make_request(
             f"problems/{problem.title_slug}/submit/",
             "POST",
             headers={
                 "Referer": f"https://leetcode.com/problems/{problem.title_slug}/"
             },
-            json={
-                "question_id": problem.problem_id,
-                "lang": "python3",
-                "typed_code": problem.solution_code,
-            }
+            json=json
         )
 
         run_id = resp.json().get("submission_id")
@@ -156,7 +160,9 @@ class LeetCodeClient:
 
         if len(problem_slugs) == 0:
             return None
-        return self.get_problem(problem_slugs[0])
+        problem = self.get_problem(problem_slugs[0])
+        problem.study_plan_slug = plan_slug
+        return problem
 
     def get_current_username(self) -> str:
         resp = self._make_graphql_request(

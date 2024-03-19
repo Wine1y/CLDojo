@@ -65,7 +65,8 @@ def random(
     config: Config,
     difficulty: str,
     solved: bool,
-    rewrite: bool
+    rewrite: bool,
+    open: bool
 ):
     """Download random problem"""
     if difficulty is not None:
@@ -98,6 +99,7 @@ def today(
     keeper: ProblemKeeper,
     config: Config,
     rewrite: bool,
+    open: bool
 ):
     """Download problem of today"""
     fetched_problem = client.get_problem_of_today()
@@ -120,7 +122,8 @@ def plan_next(
     keeper: ProblemKeeper,
     config: Config,
     plan: str,
-    rewrite: bool
+    rewrite: bool,
+    open: bool
 ):
     """Download next unsolved problem from LeetCode study plan\n
     PLAN: plan url or title slug"""

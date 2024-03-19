@@ -79,7 +79,7 @@ class ProblemKeeper:
 
     def get_problem_text(self, problem: PersistentProblem) -> str:
         tags = ", ".join(problem.tags)
-        metadata = "\n".join((f"# {key}={self._disable_newlines(value)}" for key, value in problem.metadata.items()))
+        metadata = "\n".join((f"# {key}={self._disable_newlines(value)}" for key, value in problem.metadata.items() if value is not None))
         description = problem.description.replace('\r', '').replace("\n", "\n# ")
 
         header = f"# {problem.title} ({problem.difficulty})\n# Category: {problem.category}\n# Tags: {tags}"

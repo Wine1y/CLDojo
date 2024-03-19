@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from classes.problem import Problem
 from classes.result import CommitResult
@@ -11,12 +11,14 @@ class LeetCodeProblem(Problem):
     problem_id: str
     test_input: str
     judge_type: str
+    study_plan_slug: Optional[str] = field(default=None)
     
     def get_metadata(self) -> Dict[str, str]:
         return {
             "problem_id": self.problem_id,
             "test_input": self.test_input,
-            "judge_type": self.judge_type
+            "judge_type": self.judge_type,
+            "study_plan_slug": self.study_plan_slug
         }
 
 @dataclass()
