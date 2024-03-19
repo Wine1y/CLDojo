@@ -9,7 +9,7 @@ from slugify import slugify
 from .client import LeetCodeClient
 from .classes import LeetCodeProblemDifficulty
 from providers.leetcode.classes import LeetCodeProblem
-from providers.leetcode.exceptions import PremiumRequired
+from providers.leetcode.exceptions import PremiumRequired, AuthenticationFailed
 from utils.problem_keeper import ProblemKeeper
 from utils.click import pass_client, pass_keeper, pass_config
 from utils.config import Config
@@ -136,6 +136,11 @@ def plan_next(
         plan_slug = plan
     else:
         click.echo(f"Plan \"{plan}\" was not found")
+
+    try:
+        client.get_current_username()
+    except AuthenticationFailed:
+        raise AuthenticationFailed("Can't get current user data, next study plan problem may be incorrect, check LEETCODE_SESSION cookie.")
 
     fetched_problem = client.get_next_plan_problem(plan_slug)
     if fetched_problem is None:
