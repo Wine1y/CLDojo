@@ -187,4 +187,8 @@ class LeetCodeConverter():
         for img in soup.select("img"):
             img.name = "span"
             img.append(img.attrs.get("src"))
+        for sup in soup.select("sup"):
+            sup.string = f"^{sup.text}"
+        for a in soup.select('a'):
+            a.string = f"{a.text} ({a.attrs.get('href')})"
         return soup.text
