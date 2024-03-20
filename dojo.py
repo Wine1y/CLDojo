@@ -44,6 +44,7 @@ def leetcode(ctx, config: Config):
     client = LeetCodeClient(Path(config.get("providers", "leetcode", "cookies_path")))
     keeper = ProblemKeeper(
         "leetcode",
+        max_description_line_length=config.get("main", "max_description_line_length"),
         problems_path=Path(config.get("main", "problems_dir", allow_last_none=True)),
         code_prefix=config.get("providers", "leetcode", "code_prefix", allow_last_none=True)
     )

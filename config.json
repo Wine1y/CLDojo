@@ -3,6 +3,7 @@
     "problems_dir": "problems",
     "open_saved_problems": false,
     "max_result_line_length": 256,
+    "max_description_line_length": 88,
     "show_problem_tags": true
   },
   "providers": {

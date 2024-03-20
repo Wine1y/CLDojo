@@ -23,15 +23,18 @@ class ProblemKeeper:
     provider: str
     problems_path: Path
     code_prefix: Optional[str]=None
+    max_description_line_length: int
 
     def __init__(
         self,
         provider: str,
+        max_description_line_length: int,
         problems_path: Path=Path("problems"),
         code_prefix: Optional[str]=None
     ) -> None:
         self.problem_re = re.compile(r"# (.*) \((.*)\)\n+# Category: (.*)(?:\n+# Tags: (.*))?\n+((?:#.*\n)*)\n+((?:#.*\n)*)([\s\S]*)")
         self.provider = provider
+        self.max_description_line_length = max_description_line_length
         self.code_prefix = code_prefix
 
         self.problems_path =  problems_path.joinpath(self.provider)
@@ -79,8 +82,7 @@ class ProblemKeeper:
 
     def get_problem_text(self, problem: PersistentProblem) -> str:
         metadata = "\n".join((f"# {key}={self._disable_newlines(value)}" for key, value in problem.metadata.items() if value is not None))
-        description = problem.description.replace('\r', '').replace("\n", "\n# ")
-
+        description = self._format_description(problem.description)
         header = f"# {problem.title} ({problem.difficulty})\n# Category: {problem.category}"
         if len(problem.tags) > 0:
             header+=f"\n# Tags: {', '.join(problem.tags)}"
@@ -120,3 +122,38 @@ class ProblemKeeper:
     
     def _enable_newlines(self, text: str) -> str:
         return text.replace(r"\n", "\n")
+    
+    def _format_description(self, description: str) -> str:
+        if self.max_description_line_length <= 0:
+            return description.replace('\r', '').replace("\n", "\n# ")
+
+        description_lines = description.replace('\r', '').splitlines()
+        for i in range(len(description_lines)):
+            if len(description_lines[i]) > self.max_description_line_length:
+                description_lines[i] = self._wrap_line(description_lines[i])
+
+        return '\n'.join(description_lines).replace("\n", "\n# ")
+
+    def _wrap_line(self, line: str) -> str:
+        lines = [[]]
+        line_length = 0
+
+        for word in line.split():
+            if line_length == 0:
+                lines[-1].append(word)
+                line_length=len(word)
+                continue
+
+            if line_length+1+len(word) > self.max_description_line_length:
+                lines.append(list())
+                line_length=len(word)
+            else:
+                line_length+=1+len(word)
+
+            lines[-1].append(word)
+        
+        for i in range(len(lines)):
+            lines[i] = ' '.join(lines[i])
+            
+        return '\n'.join(lines)
+            

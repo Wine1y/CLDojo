@@ -77,6 +77,7 @@ DEFAULT_CONFIG = {
   "main": {
     "problems_dir": "problems",
     "open_saved_problems": False,
+    "max_description_line_length": 88,
     "max_result_line_length": 256,
     "show_problem_tags": True
   },
