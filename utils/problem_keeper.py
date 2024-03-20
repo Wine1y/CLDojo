@@ -30,7 +30,7 @@ class ProblemKeeper:
         problems_path: Path=Path("problems"),
         code_prefix: Optional[str]=None
     ) -> None:
-        self.problem_re = re.compile(r"# (.*) \((.*)\)\n+# Category: (.*)\n+# Tags: (.*)\n+((?:#.*\n)*)\n+((?:#.*\n)*)([\s\S]*)")
+        self.problem_re = re.compile(r"# (.*) \((.*)\)\n+# Category: (.*)(?:\n+# Tags: (.*))?\n+((?:#.*\n)*)\n+((?:#.*\n)*)([\s\S]*)")
         self.provider = provider
         self.code_prefix = code_prefix
 
@@ -78,11 +78,12 @@ class ProblemKeeper:
         return self.get_problem_path(problem_slug).is_file()
 
     def get_problem_text(self, problem: PersistentProblem) -> str:
-        tags = ", ".join(problem.tags)
         metadata = "\n".join((f"# {key}={self._disable_newlines(value)}" for key, value in problem.metadata.items() if value is not None))
         description = problem.description.replace('\r', '').replace("\n", "\n# ")
 
-        header = f"# {problem.title} ({problem.difficulty})\n# Category: {problem.category}\n# Tags: {tags}"
+        header = f"# {problem.title} ({problem.difficulty})\n# Category: {problem.category}"
+        if len(problem.tags) > 0:
+            header+=f"\n# Tags: {', '.join(problem.tags)}"
         
         if self.code_prefix is not None:
             solution_code = f"{self.code_prefix}{problem.solution_code}"
@@ -109,7 +110,7 @@ class ProblemKeeper:
             difficulty=match.group(2),
             description=match.group(6).replace("# ", "").strip("\n"),
             category=match.group(3),
-            tags=match.group(4).split(", "),
+            tags=tags.split(", ") if (tags := match.group(4)) is not None else list(),
             solution_code=match.group(7).strip("\n"),
             metadata=metadata
         )

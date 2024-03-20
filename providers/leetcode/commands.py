@@ -21,6 +21,8 @@ from utils.config import Config
               help="Rewrite existing problem without confirmation")
 @click.option('--open/--no-open', '-o/-no', default=None,
               help="Open problem in default code editor")
+@click.option('--tags/--no-tags', '-t/-nt', default=None,
+              help="Show problem tags (may contain solution hints)")
 @pass_config
 @pass_keeper
 @pass_client
@@ -30,7 +32,8 @@ def get(
     config: Config,
     problem: str,
     rewrite: bool,
-    open: bool
+    open: Optional[bool],
+    tags: Optional[bool]
 ):
     """Download specified problem\n
     PROBLEM: problem url or title"""
@@ -44,8 +47,10 @@ def get(
     if fetched_problem is None:
         click.echo(f"Problem \"{problem}\" was not found")
         return
-    save_problem(fetched_problem, keeper, rewrite)
     open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    include_tags = tags if tags is not None else config.get("main", "show_problem_tags")
+
+    save_problem(fetched_problem, keeper, rewrite, include_tags)
     if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
@@ -56,6 +61,8 @@ def get(
               help="Rewrite existing problem without confirmation")
 @click.option('--open/--no-open', '-o/-no', default=None,
               help="Open problem in default code editor")
+@click.option('--tags/--no-tags', '-t/-nt', default=None,
+              help="Show problem tags (may contain solution hints)")
 @pass_config
 @pass_keeper
 @pass_client
@@ -66,7 +73,8 @@ def random(
     difficulty: str,
     solved: bool,
     rewrite: bool,
-    open: bool
+    open: Optional[bool],
+    tags: Optional[bool]
 ):
     """Download random problem"""
     if difficulty is not None:
@@ -81,8 +89,10 @@ def random(
             fetched_problem = client.get_random_problem(difficulty, solved)
         except PremiumRequired:
             sleep(1)
-    save_problem(fetched_problem, keeper, rewrite)
     open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    include_tags = tags if tags is not None else config.get("main", "show_problem_tags")
+
+    save_problem(fetched_problem, keeper, rewrite, include_tags)
     if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
@@ -91,6 +101,8 @@ def random(
               help="Rewrite existing problem without confirmation")
 @click.option('--open/--no-open', '-o/-no', default=None,
               help="Open problem in default code editor")
+@click.option('--tags/--no-tags', '-t/-nt', default=None,
+              help="Show problem tags (may contain solution hints)")
 @pass_config
 @pass_keeper
 @pass_client
@@ -99,12 +111,15 @@ def today(
     keeper: ProblemKeeper,
     config: Config,
     rewrite: bool,
-    open: bool
+    open: Optional[bool],
+    tags: Optional[bool]
 ):
     """Download problem of today"""
     fetched_problem = client.get_problem_of_today()
-    save_problem(fetched_problem, keeper, rewrite)
     open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    include_tags = tags if tags is not None else config.get("main", "show_problem_tags")
+
+    save_problem(fetched_problem, keeper, rewrite, include_tags)
     if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
@@ -114,6 +129,8 @@ def today(
               help="Rewrite existing problem without confirmation")
 @click.option('--open/--no-open', '-o/-no', default=None,
               help="Open problem in default code editor")
+@click.option('--tags/--no-tags', '-t/-nt', default=None,
+              help="Show problem tags (may contain solution hints)")              
 @pass_config
 @pass_keeper
 @pass_client
@@ -123,7 +140,8 @@ def plan_next(
     config: Config,
     plan: str,
     rewrite: bool,
-    open: bool
+    open: Optional[bool],
+    tags: Optional[bool]
 ):
     """Download next unsolved problem from LeetCode study plan\n
     PLAN: plan url or title slug"""
@@ -147,8 +165,10 @@ def plan_next(
         click.echo(f"All problems in \"{plan}\" are already solved")
         return
 
-    save_problem(fetched_problem, keeper, rewrite)
     open_problem = open if open is not None else config.get("main", "open_saved_problems")
+    include_tags = tags if tags is not None else config.get("main", "show_problem_tags")
+
+    save_problem(fetched_problem, keeper, rewrite, include_tags)
     if open_problem:
         keeper.open_problem(fetched_problem.title_slug)
 
@@ -246,12 +266,13 @@ def add_commands(group: click.Group):
 def save_problem(
     problem: LeetCodeProblem,
     keeper: ProblemKeeper,
-    rewrite: bool=False
+    rewrite: bool=False,
+    include_tags: bool=True
 ):
     if keeper.is_problem_saved(problem.title_slug) and not rewrite:
         confirmed = click.confirm(f"Are you sure you want to rewrite problem \"{problem.title}\" ? Your solution will be lost.")
         if not confirmed:
             click.echo("Saving aborted")
             return
-    saved_at = problem.save(keeper)
+    saved_at = problem.save(keeper, include_tags)
     click.echo(f"Problem \"{problem.title}\" was saved at {saved_at}")

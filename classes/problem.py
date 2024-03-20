@@ -20,13 +20,13 @@ class Problem(ABC):
     def get_metadata(self) -> Dict[str, str]:
         ...
     
-    def save(self, keeper: ProblemKeeper) -> Path:
+    def save(self, keeper: ProblemKeeper, include_tags: bool=True) -> Path:
         return keeper.save_problem(PersistentProblem(
             title=self.title,
             title_slug=self.title_slug,
             difficulty=self.difficulty,
             category=self.category,
-            tags=self.tags,
+            tags=self.tags if include_tags else list(),
             description=self.description,
             solution_code=self.solution_code,
             metadata=self.get_metadata()
