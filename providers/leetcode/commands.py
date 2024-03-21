@@ -175,6 +175,8 @@ def plan_next(
 @click.command("test")
 @click.argument("PROBLEM")
 @click.argument("TEST_INPUT", nargs=-1)
+@click.option("--fuzzy", "-f", default=False, is_flag=True,
+              help="Use fuzzy search to find the problem by name")
 @pass_config
 @pass_keeper
 @pass_client
@@ -183,18 +185,27 @@ def test(
     keeper: ProblemKeeper,
     config: Config,
     problem: str,
-    test_input: Tuple[str]
+    test_input: Tuple[str],
+    fuzzy: bool=False,
 ):
     """Test saved solution for specified problem\n
     PROBLEM: problem title or slug\n
     TEST_INPUT: testcase arguments separated by space"""
     problem_slug = slugify(problem)
-    problem_path = keeper.get_problem_path(problem_slug)
+
     try:
         loaded_problem = LeetCodeProblem.load(problem_slug, keeper)
     except FileNotFoundError:
-        click.echo(f"Problem \"{problem}\" was not found at {problem_path}")
+        loaded_problem = None
+        if fuzzy and (fuz_slug := keeper.fuzzy_search_problem(problem)) is not None:
+            fuz_problem = LeetCodeProblem.load(fuz_slug, keeper)
+            if click.confirm(f"Are you looking for problem \"{fuz_problem.title}\" ?"):
+                loaded_problem = fuz_problem
+
+    if loaded_problem is None:
+        click.echo(f"Problem \"{problem}\" was not found")
         return
+
     test_input = '\n'.join(test_input) if len(test_input) > 0 else None
     result = client.test_solution(loaded_problem, test_input)
     result.cut_lines(config.get("main", "max_result_line_length"))
@@ -202,6 +213,8 @@ def test(
 
 @click.command("submit")
 @click.argument("PROBLEM")
+@click.option("--fuzzy", "-f", default=False, is_flag=True,
+              help="Use fuzzy search to find the problem by name")
 @pass_config
 @pass_keeper
 @pass_client
@@ -209,17 +222,26 @@ def submit(
     client: LeetCodeClient,
     keeper: ProblemKeeper,
     config: Config,
-    problem: str
+    problem: str,
+    fuzzy: bool=False
 ):
     """Submit saved solution for specified problem\n
     PROBLEM: problem title or slug"""
     problem_slug = slugify(problem)
-    problem_path = keeper.get_problem_path(problem_slug)
+    
     try:
         loaded_problem = LeetCodeProblem.load(problem_slug, keeper)
     except FileNotFoundError:
-        click.echo(f"Problem \"{problem}\" was not found at {problem_path}")
+        loaded_problem = None
+        if fuzzy and (fuz_slug := keeper.fuzzy_search_problem(problem)) is not None:
+            fuz_problem = LeetCodeProblem.load(fuz_slug, keeper)
+            if click.confirm(f"Are you looking for problem \"{fuz_problem.title}\" ?"):
+                loaded_problem = fuz_problem
+
+    if loaded_problem is None:
+        click.echo(f"Problem \"{problem}\" was not found")
         return
+
     result = client.submit_solution(loaded_problem)
     result.cut_lines(config.get("main", "max_result_line_length"))
     click.echo(result)

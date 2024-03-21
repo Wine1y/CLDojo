@@ -6,6 +6,8 @@ from typing import List, Dict, Optional
 from dataclasses import dataclass
 from pathlib import Path
 
+from Levenshtein import ratio as levenshtein_ratio
+
 
 @dataclass
 class PersistentProblem:
@@ -79,6 +81,15 @@ class ProblemKeeper:
     
     def is_problem_saved(self, problem_slug: str) -> bool:
         return self.get_problem_path(problem_slug).is_file()
+    
+    def fuzzy_search_problem(self, problem_title: str) -> Optional[str]:
+        maxRatio, bestPath = 0, None
+        for problem_path in self.problems_path.iterdir():
+            if (ratio := levenshtein_ratio(problem_title, problem_path.stem)) > maxRatio:
+                maxRatio = ratio
+                bestPath = problem_path.stem
+        
+        return bestPath
 
     def get_problem_text(self, problem: PersistentProblem) -> str:
         metadata = "\n".join((f"# {key}={self._disable_newlines(value)}" for key, value in problem.metadata.items() if value is not None))

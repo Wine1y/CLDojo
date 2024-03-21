@@ -5,8 +5,10 @@ charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
 idna==3.6
+Levenshtein==0.25.0
 lxml==5.1.0
 python-slugify==8.0.3
+rapidfuzz==3.6.2
 requests==2.31.0
 soupsieve==2.5
 text-unidecode==1.3
