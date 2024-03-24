@@ -46,7 +46,7 @@ def leetcode(ctx, config: Config):
         "leetcode",
         max_description_line_length=config.get("main", "max_description_line_length"),
         problems_path=Path(config.get("main", "problems_dir", allow_last_none=True)),
-        code_prefix=config.get("providers", "leetcode", "code_prefix", allow_last_none=True)
+        code_prefixes=config.get("providers", "leetcode", "code_prefixes")
     )
 
     ctx.obj['client'] = client

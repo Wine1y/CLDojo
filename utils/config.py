@@ -84,7 +84,34 @@ DEFAULT_CONFIG = {
   "providers": {
     "leetcode": {
       "cookies_path": "leetcode_cookies.txt",
-      "code_prefix": None
+      "default_language": "Python",
+      "default_shell_language": "Bash",
+      "default_sql_dialect": "MySQL",
+      "code_prefixes": {
+        "C++": None,
+        "Java": None,
+        "Python": None,
+        "C": None,
+        "C#": None,
+        "JavaScript": None,
+        "TypeScript": None,
+        "PHP": None,
+        "Swift": None,
+        "Kotlin": None,
+        "Dart": None,
+        "Go": None,
+        "Ruby": None,
+        "Scala": None,
+        "Rust": None,
+        "Racket": None,
+        "Erlang": None,
+        "Elixir": None,
+        "Bash": None,
+        "MySQL": None,
+        "MS SQL Server": None,
+        "Oracle": None,
+        "PostgreSQL": None
+      }
     }
   }
 }

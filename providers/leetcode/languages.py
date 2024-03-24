@@ -1,0 +1,56 @@
+from classes.language import Languages, ShellLanguages, SQLDialects
+
+
+SLUG_TO_LANGUAGE = {
+    "cpp": Languages.CPP,
+    "java": Languages.JAVA,
+    "python": Languages.PYTHON,
+    "python3": Languages.PYTHON,
+    "c": Languages.C,
+    "csharp": Languages.CSHARP,
+    "javascript": Languages.JAVASCRIPT,
+    "typescript": Languages.TYPESCRIPT,
+    "php": Languages.PHP,
+    "swift": Languages.SWIFT,
+    "kotlin": Languages.KOTLIN,
+    "dart": Languages.DART,
+    "golang": Languages.GOLANG,
+    "ruby": Languages.RUBY,
+    "scala": Languages.SCALA,
+    "rust": Languages.RUST,
+    "racket": Languages.RACKET,
+    "erlang": Languages.ERLANG,
+    "elixir": Languages.ELIXIR,
+    "bash": ShellLanguages.BASH,
+    "mysql": SQLDialects.MYSQL,
+    "mssql": SQLDialects.MSSQL,
+    "oraclesql": SQLDialects.ORACLE,
+    "postgresql": SQLDialects.POSTGRES,
+    "pythondata": Languages.PYTHON
+}
+
+LANGUAGE_TO_SLUG = {
+    Languages.CPP.value: "cpp",
+    Languages.JAVA.value: "java",
+    Languages.PYTHON.value: "python3",
+    Languages.C.value: "c",
+    Languages.CSHARP.value: "csharp",
+    Languages.JAVASCRIPT.value: "javascript",
+    Languages.TYPESCRIPT.value: "typescript",
+    Languages.PHP.value: "php",
+    Languages.SWIFT.value: "swift",
+    Languages.KOTLIN.value: "kotlin",
+    Languages.DART.value: "dart",
+    Languages.GOLANG.value: "golang",
+    Languages.RUBY.value: "ruby",
+    Languages.SCALA.value: "scala",
+    Languages.RUST.value: "rust",
+    Languages.RACKET.value: "racket",
+    Languages.ERLANG.value: "erlang",
+    Languages.ELIXIR.value: "elixir",
+    ShellLanguages.BASH.value: "bash",
+    SQLDialects.MYSQL.value: "mysql",
+    SQLDialects.MSSQL.value: "mssql",
+    SQLDialects.ORACLE.value: "oraclesql",
+    SQLDialects.POSTGRES.value: "postgresql"
+}

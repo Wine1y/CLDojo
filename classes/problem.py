@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from typing import List, Dict
 from pathlib import Path
 
-from utils.problem_keeper import ProblemKeeper, PersistentProblem
+from utils.problem_keeper import ProblemKeeper
+from .language import Language
+from .persistent_problem import PersistentProblem
 
 
 @dataclass()
@@ -14,6 +16,7 @@ class Problem(ABC):
     category: str
     tags: List[str]
     description: str
+    language: Language
     solution_code: str
     
     @abstractmethod
@@ -28,13 +31,14 @@ class Problem(ABC):
             category=self.category,
             tags=self.tags if include_tags else list(),
             description=self.description,
+            language=self.language,
             solution_code=self.solution_code,
             metadata=self.get_metadata()
         ))
     
     @classmethod
-    def load(cls, title_slug: str, keeper: ProblemKeeper) -> "Problem":
-        data = keeper.load_problem(title_slug)
+    def load(cls, title_slug: str, language: Language, keeper: ProblemKeeper) -> "Problem":
+        data = keeper.load_problem(title_slug, language)
         return cls(
             title=data.title,
             title_slug=data.title_slug,
@@ -42,6 +46,7 @@ class Problem(ABC):
             category=data.category,
             tags=data.tags,
             description=data.description,
+            language=data.language,
             solution_code=data.solution_code,
             **data.metadata
         )

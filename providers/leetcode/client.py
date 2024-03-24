@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Set
 from time import sleep
 from pathlib import Path
 from http.cookiejar import MozillaCookieJar
@@ -8,7 +8,9 @@ import requests
 
 import providers.leetcode.classes as classes
 import providers.leetcode.exceptions as exceptions
+from providers.leetcode.languages import LANGUAGE_TO_SLUG
 from classes.result import CommitResult
+from classes.language import Language
 from .converter import LeetCodeConverter
 
 
@@ -44,14 +46,14 @@ class LeetCodeClient:
             raise RuntimeError("No LEETCODE_SESSION cookie provided")
         
 
-    def get_problem(self, title_slug: str) -> classes.LeetCodeProblem:
+    def get_problem(self, title_slug: str, languages: Set[Language]) -> classes.LeetCodeProblem:
         resp = self._make_graphql_request(
             "questionData",
             "query questionData($titleSlug: String!) {\n  question(titleSlug: $titleSlug) {\n    questionId\n    isPaidOnly\n    title\n    titleSlug\n    content\n    difficulty\n    categoryTitle\n    topicTags {\n      name\n    }\n    codeSnippets {\n      langSlug\n      code\n    }\n    sampleTestCase\n    judgeType\n  }\n}\n",
             titleSlug=title_slug
         )
 
-        return self.converter.json_to_problem(resp.json().get("data").get("question"))
+        return self.converter.json_to_problem(resp.json().get("data").get("question"), languages)
     
     def test_solution(self, problem: classes.LeetCodeProblem, test_input: Optional[str]) -> CommitResult:
         test_input = test_input or problem.test_input
@@ -64,7 +66,7 @@ class LeetCodeClient:
             json={
                 "question_id": problem.problem_id,
                 "data_input": test_input,
-                "lang": "python3",
+                "lang": LANGUAGE_TO_SLUG[problem.language],
                 "typed_code": problem.solution_code,
                 "judge_type": problem.judge_type
             }
@@ -77,7 +79,7 @@ class LeetCodeClient:
     def submit_solution(self, problem: classes.LeetCodeProblem) -> CommitResult:
         json = {
             "question_id": problem.problem_id,
-            "lang": "python3",
+            "lang": LANGUAGE_TO_SLUG[problem.language],
             "typed_code": problem.solution_code,
         }
         
@@ -95,7 +97,7 @@ class LeetCodeClient:
         run_id = resp.json().get("submission_id")
         return self._await_running_submission(problem, run_id)
     
-    def search_problem(self, problem_title: str) -> Optional[classes.LeetCodeProblem]:
+    def search_problem(self, problem_title: str, languages: Set[Language]) -> Optional[classes.LeetCodeProblem]:
         resp = self._make_graphql_request(
             "problemsetQuestionList",
             "\n    query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {\n  problemsetQuestionList: questionList(\n    categorySlug: $categorySlug\n    limit: $limit\n    skip: $skip\n    filters: $filters\n  ) {\n    total: totalNum\n    questions: data {\n    questionId\n    isPaidOnly\n    title\n    titleSlug\n    content\n    difficulty\n    categoryTitle\n    topicTags {\n      name\n    }\n    codeSnippets {\n      langSlug\n      code\n    }\n    sampleTestCase\n    judgeType\n  }\n  }\n}\n    ",
@@ -109,10 +111,11 @@ class LeetCodeClient:
         if len(problems) == 0:
             return None
         
-        return self.converter.json_to_problem(problems[0])
+        return self.converter.json_to_problem(problems[0], languages)
     
     def get_random_problem(
         self,
+        languages: Set[Language],
         difficulty: Optional[classes.LeetCodeProblemDifficulty]=None,
         include_solved: bool=False
     ) -> classes.LeetCodeProblem:
@@ -129,19 +132,20 @@ class LeetCodeClient:
             filters=filters
         )
 
-        return self.converter.json_to_problem(resp.json().get("data").get("randomQuestion"))
+        return self.converter.json_to_problem(resp.json().get("data").get("randomQuestion"), languages)
     
-    def get_problem_of_today(self) -> classes.LeetCodeProblem:
+    def get_problem_of_today(self, languages: Set[Language]) -> classes.LeetCodeProblem:
         resp = self._make_graphql_request(
             "questionOfToday",
             "\n    query questionOfToday {\n  activeDailyCodingChallengeQuestion {\n    question {\n    questionId\n    isPaidOnly\n    title\n    titleSlug\n    content\n    difficulty\n    categoryTitle\n    topicTags {\n      name\n    }\n    codeSnippets {\n      langSlug\n      code\n    }\n    sampleTestCase\n    judgeType\n  }\n  }\n}\n    ",
         )
 
         return self.converter.json_to_problem(
-            resp.json().get("data").get("activeDailyCodingChallengeQuestion").get("question")
+            resp.json().get("data").get("activeDailyCodingChallengeQuestion").get("question"),
+            languages
         )
     
-    def get_next_plan_problem(self, plan_slug: str) -> Optional[classes.LeetCodeProblem]:
+    def get_next_plan_problem(self, plan_slug: str, languages: Set[Language]) -> Optional[classes.LeetCodeProblem]:
         resp = self._make_graphql_request(
             "studyPlanDetail",
             "\n    query studyPlanDetail($slug: String!) {\n  studyPlanV2Detail(planSlug: $slug) {\n    slug\n    name\n    highlight\n    staticCoverPicture\n    colorPalette\n    threeDimensionUrl\n    description\n    premiumOnly\n    needShowTags\n    awardDescription\n    defaultLanguage\n    award {\n      name\n      config {\n        icon\n        iconGif\n        iconGifBackground\n      }\n    }\n    relatedStudyPlans {\n      cover\n      highlight\n      name\n      slug\n      premiumOnly\n    }\n    planSubGroups {\n      slug\n      name\n      premiumOnly\n      questionNum\n      questions {\n        titleSlug\n      paidOnly\n      status\n      }\n    }\n  }\n}\n    ",
@@ -160,7 +164,7 @@ class LeetCodeClient:
 
         if len(problem_slugs) == 0:
             return None
-        problem = self.get_problem(problem_slugs[0])
+        problem = self.get_problem(problem_slugs[0], languages)
         problem.study_plan_slug = plan_slug
         return problem
 

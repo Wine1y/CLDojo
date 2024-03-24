@@ -9,7 +9,34 @@
   "providers": {
     "leetcode": {
       "cookies_path": "leetcode_cookies.txt",
-      "code_prefix": null
+      "default_language": "Python",
+      "default_shell_language": "Bash",
+      "default_sql_dialect": "MySQL",
+      "code_prefixes": {
+        "C++": null,
+        "Java": null,
+        "Python": null,
+        "C": null,
+        "C#": null,
+        "JavaScript": null,
+        "TypeScript": null,
+        "PHP": null,
+        "Swift": null,
+        "Kotlin": null,
+        "Dart": null,
+        "Go": null,
+        "Ruby": null,
+        "Scala": null,
+        "Rust": null,
+        "Racket": null,
+        "Erlang": null,
+        "Elixir": null,
+        "Bash": null,
+        "MySQL": null,
+        "MS SQL Server": null,
+        "Oracle": null,
+        "PostgreSQL": null
+      }
     }
   }
 }

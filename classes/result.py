@@ -2,6 +2,8 @@ from typing import List
 from enum import Enum
 from dataclasses import dataclass
 
+from classes.language import Language
+
 
 class ResultState(Enum):
     Accepted = "[✔]Accepted"
@@ -15,6 +17,7 @@ class ResultState(Enum):
 @dataclass()
 class CommitResult():
     problem_title: str
+    language: Language
     state: ResultState
     
     def header_lines(self) -> List[str]:
@@ -31,7 +34,7 @@ class CommitResult():
     
     def __str__(self) -> str:
         header, body, footer = self.header_lines(), self.body_lines(), self.footer_lines()
-        result_str = f"{self.problem_title}: {self.state}"
+        result_str = f"{self.problem_title} ({self.language.name}): {self.state}"
 
         if len(header) > 0:
             result_str+="\n{0}".format('\n'.join(header))
