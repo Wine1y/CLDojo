@@ -49,9 +49,6 @@ class LeetCodeConverter():
         json: Dict[str, Any],
         input_data: Optional[str]=None
     ) -> CommitResult:
-        with open("comm.json", 'w', encoding="utf-8") as w:
-            from json import dump
-            dump(json, w, ensure_ascii=False, indent=2)
         match json.get("task_name"):
             case "judger.runcodetask.RunCode":
                 return self._json_to_test_result(problem, json, input_data)

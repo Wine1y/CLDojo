@@ -7,6 +7,7 @@ from providers.leetcode.commands import add_commands as add_leetcode_commands
 from providers.leetcode.client import LeetCodeClient
 from utils.click import pass_config
 from utils.problem_keeper import ProblemKeeper
+from utils.problem_formatter import ProblemFormatter
 from utils.config import Config, get_config
 
 
@@ -41,12 +42,18 @@ def leetcode(ctx, config: Config):
     """Use LeetCode API to get problems and test/submit their solutions"""
     ctx.ensure_object(dict)
     
-    client = LeetCodeClient(Path(config.get("providers", "leetcode", "cookies_path")))
-    keeper = ProblemKeeper(
-        "leetcode",
+    client = LeetCodeClient(
+        cookies_file_path=Path(config.get("providers", "leetcode", "cookies_path"))
+    )
+    formatter = ProblemFormatter(
         max_description_line_length=config.get("main", "max_description_line_length"),
-        problems_path=Path(config.get("main", "problems_dir", allow_last_none=True)),
         code_prefixes=config.get("providers", "leetcode", "code_prefixes")
+    )
+    keeper = ProblemKeeper(
+        provider="leetcode",
+        formatter=formatter,
+        problems_path=Path(config.get("main", "problems_dir", allow_last_none=True)),
+        
     )
 
     ctx.obj['client'] = client
