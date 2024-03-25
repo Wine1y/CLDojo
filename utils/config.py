@@ -79,7 +79,13 @@ DEFAULT_CONFIG = {
     "open_saved_problems": False,
     "max_description_line_length": 88,
     "max_result_line_length": 256,
-    "show_problem_tags": True
+    "show_problem_tags": True,
+    "colors": {
+        "title": "red",
+        "language": "yellow",
+        "value": "cyan",
+        "delimiter": "magenta"
+    }
   },
   "providers": {
     "leetcode": {

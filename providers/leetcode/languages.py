@@ -4,7 +4,6 @@ from classes.language import Languages, ShellLanguages, SQLDialects
 SLUG_TO_LANGUAGE = {
     "cpp": Languages.CPP,
     "java": Languages.JAVA,
-    "python": Languages.PYTHON,
     "python3": Languages.PYTHON,
     "c": Languages.C,
     "csharp": Languages.CSHARP,

@@ -10,7 +10,8 @@ from .classes import LeetCodeProblemDifficulty
 from providers.leetcode.classes import LeetCodeProblem
 from providers.leetcode.exceptions import PremiumRequired, AuthenticationFailed
 from utils.problem_keeper import ProblemKeeper
-from utils.click import pass_client, pass_keeper, pass_config, pass_default_languages
+from utils.style import OutputStyler
+from utils.click import pass_client, pass_keeper, pass_config, pass_default_languages, pass_styler
 from utils.config import Config
 from classes.language import any_language_by_name, all_languages, Language
 
@@ -206,6 +207,7 @@ def plan_next(
 @click.option("--fuzzy", "-f", default=False, is_flag=True,
               help="Use fuzzy search to find the problem by name")
 @pass_default_languages(provider="leetcode")
+@pass_styler
 @pass_config
 @pass_keeper
 @pass_client
@@ -213,6 +215,7 @@ def test(
     client: LeetCodeClient,
     keeper: ProblemKeeper,
     config: Config,
+    styler: OutputStyler,
     default_languages: Set[Language],
     problem: str,
     language: Optional[str],
@@ -246,14 +249,15 @@ def test(
     test_input = '\n'.join(test_input) if len(test_input) > 0 else None
     result = client.test_solution(loaded_problem, test_input)
     result.cut_lines(config.get("main", "max_result_line_length"))
-    click.echo(result)
+    click.echo(result.styled_str(styler))
 
 @click.command("submit")
 @click.argument("PROBLEM")
 @click.argument("LANGUAGE", required=False)
 @click.option("--fuzzy", "-f", default=False, is_flag=True,
               help="Use fuzzy search to find the problem by name")
-@pass_default_languages(provider="leetcode")              
+@pass_default_languages(provider="leetcode")
+@pass_styler           
 @pass_config
 @pass_keeper
 @pass_client
@@ -261,6 +265,7 @@ def submit(
     client: LeetCodeClient,
     keeper: ProblemKeeper,
     config: Config,
+    styler: OutputStyler,
     default_languages: Set[Language],
     problem: str,
     language: Optional[str],
@@ -291,12 +296,13 @@ def submit(
 
     result = client.submit_solution(loaded_problem)
     result.cut_lines(config.get("main", "max_result_line_length"))
-    click.echo(result)
+    click.echo(result.styled_str(styler))
 
 @click.command("stats")
 @click.argument("USERNAME", required=False)
+@pass_styler
 @pass_client
-def stats(client: LeetCodeClient, username: Optional[str]):
+def stats(client: LeetCodeClient, styler: OutputStyler, username: Optional[str]):
     """Get user stats\n
     USERNAME: LeetCode username, defaults to your username"""
     if username is None:
@@ -305,13 +311,14 @@ def stats(client: LeetCodeClient, username: Optional[str]):
     if stats is None:
         click.echo(f"Can't get stats for user \"{username}\", try again later.")
         return
-    click.echo(stats)
+    click.echo(stats.styled_str(styler))
 
 @click.command("clear")
 @click.option("--yes", "-y",is_flag=True, help="Skip the confirmation prompt")
 @click.argument("LANGUAGE", required=False)
+@pass_styler
 @pass_keeper
-def clear(keeper: ProblemKeeper, yes: bool, language: Optional[str]=None):
+def clear(keeper: ProblemKeeper, styler: OutputStyler, yes: bool, language: Optional[str]=None):
     """Delete all saved LeetCode problems\n
     LANGUAGE: Delete problems in specified language"""
     language = any_language_by_name(language) if language is not None else None
@@ -329,6 +336,8 @@ def clear(keeper: ProblemKeeper, yes: bool, language: Optional[str]=None):
             lang_removed, lang_failed = keeper.delete_problems(language)
             removed+=lang_removed
             failed+=lang_failed
+    removed = styler.style_with_color(removed, 'bright_green')
+    failed = styler.style_with_color(failed, 'bright_red')
     
     click.echo(f"REMOVED: {removed}, FAILED: {failed}")
 

@@ -4,7 +4,13 @@
     "open_saved_problems": false,
     "max_result_line_length": 256,
     "max_description_line_length": 88,
-    "show_problem_tags": true
+    "show_problem_tags": true,
+    "colors": {
+        "title": "bright_magenta",
+        "language": "yellow",
+        "value": "cyan",
+        "delimiter": "red"
+    }
   },
   "providers": {
     "leetcode": {

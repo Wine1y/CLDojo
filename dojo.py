@@ -9,6 +9,7 @@ from utils.click import pass_config
 from utils.problem_keeper import ProblemKeeper
 from utils.problem_formatter import ProblemFormatter
 from utils.config import Config, get_config
+from utils.style import OutputStyler, ColorType, AVAILABLE_COLORS
 
 
 @click.group()
@@ -42,12 +43,18 @@ def leetcode(ctx, config: Config):
     """Use LeetCode API to get problems and test/submit their solutions"""
     ctx.ensure_object(dict)
     
-    client = LeetCodeClient(
-        cookies_file_path=Path(config.get("providers", "leetcode", "cookies_path"))
-    )
     formatter = ProblemFormatter(
         max_description_line_length=config.get("main", "max_description_line_length"),
         code_prefixes=config.get("providers", "leetcode", "code_prefixes")
+    )
+    styler = OutputStyler({
+        ColorType.TITLE: config.get("main", "colors", "title"),
+        ColorType.LANGUAGE: config.get("main", "colors", "language"),
+        ColorType.VALUE: config.get("main", "colors", "value"),
+        ColorType.DELIMITER: config.get("main", "colors", "delimiter")
+    })
+    client = LeetCodeClient(
+        cookies_file_path=Path(config.get("providers", "leetcode", "cookies_path"))
     )
     keeper = ProblemKeeper(
         provider="leetcode",
@@ -56,6 +63,7 @@ def leetcode(ctx, config: Config):
         
     )
 
+    ctx.obj['styler'] = styler
     ctx.obj['client'] = client
     ctx.obj['keeper'] = keeper
 

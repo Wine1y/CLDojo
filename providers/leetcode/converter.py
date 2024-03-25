@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 import providers.leetcode.classes as classes
 import providers.leetcode.exceptions as exceptions
-from classes.result import CommitResult, ResultState
+from classes.result import CommitResult, ResultStates
 from classes.language import Language
 from providers.leetcode.languages import SLUG_TO_LANGUAGE
 
@@ -120,13 +120,13 @@ class LeetCodeConverter():
 
         match json.get("state"):
             case "SUCCESS" if is_error or is_time_limit_exceeded:
-                state = ResultState.Error
+                state = ResultStates.Error.value
             case "SUCCESS" if (correct := json.get("correct_answer")) is not None and correct:
-                state = ResultState.Accepted
+                state = ResultStates.Accepted.value
             case "SUCCESS":
-                state = ResultState.Rejected
+                state = ResultStates.Rejected.value
             case _:
-                state = ResultState.Unknown
+                state = ResultStates.Unknown.value
             
         answer = "\n".join(answer_list) if (answer_list := json.get("code_answer")) is not None else None
         exp_answer = "\n".join(exp_answer_list) if (exp_answer_list := json.get("expected_code_answer")) is not None else None
@@ -163,13 +163,13 @@ class LeetCodeConverter():
 
         match json.get("state"):
             case "SUCCESS" if is_error or is_time_limit_exceeded:
-                state = ResultState.Error
+                state = ResultStates.Error.value
             case "SUCCESS" if (correct := json.get("total_correct")) is not None and correct == json.get("total_testcases"):
-                state = ResultState.Accepted
+                state = ResultStates.Accepted.value
             case "SUCCESS":
-                state = ResultState.Rejected
+                state = ResultStates.Rejected.value
             case _:
-                state = ResultState.Unknown
+                state = ResultStates.Unknown.value
 
         error = json.get("runtime_error") or json.get("compile_error")
         if is_time_limit_exceeded:

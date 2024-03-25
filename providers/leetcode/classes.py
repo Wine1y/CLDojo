@@ -1,9 +1,11 @@
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from enum import Enum
 from dataclasses import dataclass, field
 
+from utils.style import OutputStyler, ColorType
 from classes.problem import Problem
 from classes.result import CommitResult
+from classes.stats import UserStats
 
 
 @dataclass()
@@ -32,37 +34,67 @@ class LeetCodeCommitResult(CommitResult):
     input: Optional[str]
     output: Optional[str]
     error: Optional[str]
-
-    def header_lines(self) -> List[str]:
-        memory, runtime = self.memory or "", self.runtime or ""
-        if self.memory_percentile is not None:
-            memory+=f"({round(self.memory_percentile, 2)}%)"
-        if self.runtime_percentile is not None:
-            runtime+=f"({round(self.runtime_percentile, 2)}%)"
-        return [
-            f"Memory: {memory}, Runtime: {runtime}"
-        ]
     
-    def body_lines(self) -> List[str]:
-        info_parts = list()
-        if self.input is not None and len(self.input) > 0:
-            info_parts.append(f"Input:\n{self.input}")
-        if self.answer is not None and len(self.answer) > 0:
-            info_parts.append(f"Output:\n{self.answer}")
-        if self.expected_answer is not None and len(self.expected_answer) > 0:
-            info_parts.append(f"Expected:\n{self.expected_answer}")
-        if self.output is not None and len(self.output) > 0:
-            info_parts.append(f"StdOut:\n{self.output}")
-        if self.error is not None and len(self.error) > 0:
-            info_parts.append(f"Error:\n{self.error}")
-        return info_parts
     
     def cut_lines(self, max_line_length: int) -> None:
         for line in ["input", "answer", "expected_answer", "output", "error"]:
             line_value = getattr(self, line)
             if line_value is not None and len(line_value) > max_line_length:
                 setattr(self, line, f"{line_value[:max_line_length]}... ({len(line_value)-max_line_length} characters more)")
-                
+    
+    def __str__(self) -> str:
+        memory, runtime = self.memory or "", self.runtime or ""
+        if self.memory_percentile is not None:
+            memory+=f"({round(self.memory_percentile, 2)}%)"
+        if self.runtime_percentile is not None:
+            runtime+=f"({round(self.runtime_percentile, 2)}%)"
+
+        lines = [
+            ("Input", self.input), ("Output", self.answer),
+            ("Expected", self.expected_answer), ("StdOut", self.output), ("Error", self.error)
+        ]
+        body = '\n\n'.join([
+            f"{line[0]}:\n{line[1]}"
+            for line in lines
+            if line[1] is not None and len(line[1]) > 0
+        ])
+
+        result_str = f"{self.problem_title} ({self.language.name}): {self.state}\nMemory: {memory}, Runtime: {runtime}"
+
+        if len(body) > 0:
+            result_str+=f"\n\n{body}"
+
+        return result_str
+    
+    def styled_str(self, styler: OutputStyler) -> str:
+        dlmt = styler.style(':', ColorType.DELIMITER)
+
+        memory, runtime = self.memory or "", self.runtime or ""
+        memory, runtime = styler.style(memory, ColorType.VALUE), styler.style(runtime, ColorType.VALUE)
+        if self.memory_percentile is not None:
+            memory+=f"({round(self.memory_percentile, 2)}%)"
+        if self.runtime_percentile is not None:
+            runtime+=f"({round(self.runtime_percentile, 2)}%)"
+
+        lines = [
+            ("Input", self.input), ("Output", self.answer),
+            ("Expected", self.expected_answer), ("StdOut", self.output), ("Error", self.error)
+        ]
+        body = '\n\n'.join([
+            f"{line[0]}{dlmt}\n{line[1]}"
+            for line in lines
+            if line[1] is not None and len(line[1]) > 0
+        ])
+
+        title = styler.style(self.problem_title, ColorType.TITLE)
+        language = styler.style(self.language.name, ColorType.LANGUAGE)
+        result_str = f"{title} ({language}){dlmt} {self.state.styled_str(styler)}\nMemory{dlmt} {memory}, Runtime{dlmt} {runtime}"
+
+        if len(body) > 0:
+            result_str+=f"\n\n{body}"
+
+        return result_str
+
 class LeetCodeProblemDifficulty(Enum):
     All = "all"
     Easy = "easy"
@@ -80,7 +112,7 @@ class LeetCodeProblemDifficulty(Enum):
             return None
 
 @dataclass()
-class LeetCodeUserStats:
+class LeetCodeUserStats(UserStats):
     username: str
     real_name: Optional[str]
     rank: int
@@ -105,6 +137,29 @@ class LeetCodeUserStats:
 
         return f"{username}\n\n{metrics}\n\nLanguages:\n{languages}\n\nProblems solved:\n{problems}"
 
+    def styled_str(self, styler: OutputStyler) -> str:
+        dlmt = styler.style(':', ColorType.DELIMITER)
+        username = f"{self.username} ({self.real_name})" if self.real_name is not None else self.username
+        username = styler.style(username, ColorType.TITLE)
+        
+        metrics = [
+            ("Rank", self.rank), ("Views", self.views_count),
+            ("Solution", self.solution_count), ("Discuss", self.discuss_count),
+            ("Reputation", self.reputation)
+        ]
+
+        metrics = '\n'.join(f"{metric[0]}{dlmt} {styler.style(metric[1], ColorType.VALUE)}" for metric in metrics)
+        languages = '\n'.join((
+            f"{language}{dlmt} {styler.style(count, ColorType.VALUE)} problems sovled"
+            for language, count in self.languages_problems_sovled.items()
+        ))
+        problems = '\n'.join((
+            f"{difficulty.value.capitalize()}{dlmt} {stats.styled_str(styler)}"
+            for difficulty, stats in self.difficulty_problems_stats.items()
+        ))
+
+        return f"{username}\n\n{metrics}\n\nLanguages:\n{languages}\n\nProblems solved:\n{problems}"
+
 @dataclass()
 class DifficultyProblemsStats:
     total_problems: int
@@ -112,6 +167,13 @@ class DifficultyProblemsStats:
     beats_percentage: Optional[float]
 
     def __str__(self) -> str:
-        if self.beats_percentage is None:
-            return f"{self.solved}/{self.total_problems}"
-        return f"{self.solved}/{self.total_problems} (Beats {round(self.beats_percentage, 2)}%)"
+        string = f"{self.solved}/{self.total_problems}"
+        if self.beats_percentage is not None:
+            string+=f" (Beats {round(self.beats_percentage, 2)}%)"
+        return string
+    
+    def styled_str(self, styler: OutputStyler) -> str:
+        string = styler.style(f"{self.solved}/{self.total_problems}", ColorType.VALUE)
+        if self.beats_percentage is not None:
+            string+=f" (Beats {round(self.beats_percentage, 2)}%)"
+        return string

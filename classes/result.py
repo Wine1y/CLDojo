@@ -1,46 +1,45 @@
-from typing import List
+from abc import ABC, abstractmethod
 from enum import Enum
 from dataclasses import dataclass
+from utils.style import OutputStyler
 
 from classes.language import Language
 
 
-class ResultState(Enum):
-    Accepted = "[✔]Accepted"
-    Rejected = "[✘]Rejected"
-    Error = "[!]Error"
-    Unknown = "[?]Something went wrong..."
+@dataclass()
+class ResultState:
+    symbol: str
+    symbol_color: str
+    value: str
 
     def __str__(self) -> str:
-        return self.value
+        return f"[{self.symbol}]{self.value}"
+    
+    def styled_str(self, styler: OutputStyler) -> str:
+        return f"[{styler.style_with_color(self.symbol, self.symbol_color)}]{self.value}"
+
+class ResultStates(Enum):
+    Accepted = ResultState('✔', 'bright_green', "Accepted")
+    Rejected = ResultState('✘', 'bright_red', "Rejected")
+    Error = ResultState('!', 'red', "Error")
+    Unknown = ResultState('?', 'bright_blue', "Something went wrong")
+
 
 @dataclass()
-class CommitResult():
+class CommitResult(ABC):
     problem_title: str
     language: Language
     state: ResultState
     
-    def header_lines(self) -> List[str]:
-        return list()
-    
-    def body_lines(self) -> List[str]:
-        return list()
-    
-    def footer_lines(self) -> List[str]:
-        return list()
-    
+    @abstractmethod
     def cut_lines(self, max_line_length: int) -> None:
         ...
-    
+
+    @abstractmethod
     def __str__(self) -> str:
-        header, body, footer = self.header_lines(), self.body_lines(), self.footer_lines()
-        result_str = f"{self.problem_title} ({self.language.name}): {self.state}"
-
-        if len(header) > 0:
-            result_str+="\n{0}".format('\n'.join(header))
-        if len(body) > 0:
-            result_str+="\n\n{0}".format('\n\n'.join(body))
-        if len(footer) > 0:
-            result_str+="\n\n{0}".format('\n'.join(footer))
-
-        return result_str
+        ...
+        
+    @abstractmethod
+    def styled_str(self, _: OutputStyler) -> str:
+        ...
+    

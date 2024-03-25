@@ -27,6 +27,13 @@ def pass_config(f):
         return ctx.invoke(f, ctx.obj.get("config"), *args, **kwargs)
     return update_wrapper(new_func, f)
 
+def pass_styler(f):
+    @click.pass_context
+    def new_func(ctx, *args, **kwargs):
+        ctx.ensure_object(dict)
+        return ctx.invoke(f, ctx.obj.get("styler"), *args, **kwargs)
+    return update_wrapper(new_func, f)
+
 def pass_default_languages(provider:str):
     def inner(f):
         @pass_config
