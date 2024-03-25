@@ -81,10 +81,10 @@ DEFAULT_CONFIG = {
     "max_result_line_length": 256,
     "show_problem_tags": True,
     "colors": {
-        "title": "red",
+        "title": "bright_magenta",
         "language": "yellow",
         "value": "cyan",
-        "delimiter": "magenta"
+        "delimiter": "red"
     }
   },
   "providers": {
